@@ -1,3 +1,4 @@
+import { prisma } from "@/lib/prisma";
 import { formatDate } from "@/lib/format";
 
 export type BalanceInput = {
@@ -37,6 +38,23 @@ export function calculateBalances(
   }
 
   return balances;
+}
+
+export async function getPocketBalance(pocketId: number) {
+  const transactions = await prisma.transaction.findMany({
+    where: {
+      OR: [{ pocketId }, { fromPocketId: pocketId }, { toPocketId: pocketId }],
+    },
+    select: {
+      type: true,
+      amount: true,
+      pocketId: true,
+      fromPocketId: true,
+      toPocketId: true,
+    },
+  });
+
+  return calculateBalances([{ id: pocketId }], transactions).get(pocketId) ?? 0;
 }
 
 export type TransactionSummary = {

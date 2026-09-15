@@ -28,7 +28,7 @@ export default async function Home() {
         _sum: { amount: true },
       }),
       prisma.transaction.findMany({
-        orderBy: { date: "desc" },
+        orderBy: { createdAt: "desc" },
         take: 5,
         include: { pocket: true, category: true, fromPocket: true, toPocket: true },
       }),
@@ -86,7 +86,7 @@ export default async function Home() {
           <ul className="mt-3 divide-y divide-zinc-200 rounded-xl border border-zinc-200 bg-white dark:divide-zinc-800 dark:border-zinc-800 dark:bg-zinc-950">
             {transactions.length === 0 ? (
               <li className="px-4 py-6 text-center text-sm text-zinc-500 dark:text-zinc-400">
-                Belum ada transaksi. Mulai catat di halaman Transaksi.
+                Belum ada transaksi. Mulai catat di halaman Wallet.
               </li>
             ) : (
               transactions.map((tx) => {

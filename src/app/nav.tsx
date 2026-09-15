@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 
 const links = [
   { href: "/", label: "Dashboard" },
-  { href: "/transactions", label: "Transaksi" },
+  { href: "/wallets", label: "Wallet" },
 ];
 
 export function Nav() {
@@ -15,7 +15,10 @@ export function Nav() {
     <nav className="border-b border-zinc-200 bg-white dark:border-zinc-800 dark:bg-black">
       <div className="mx-auto flex w-full max-w-3xl items-center gap-1 px-4 sm:px-6 lg:px-8">
         {links.map((link) => {
-          const active = pathname === link.href;
+          const active =
+            link.href === "/"
+              ? pathname === "/"
+              : pathname.startsWith(link.href);
           return (
             <Link
               key={link.href}
