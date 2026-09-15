@@ -18,3 +18,56 @@ model User {
   name      String?
   createdAt DateTime @default(now())
 }
+
+enum TransactionType {
+  INCOME
+  EXPENSE
+  TRANSFER
+}
+
+enum CategoryType {
+  INCOME
+  EXPENSE
+}
+
+model Pocket {
+  id        Int      @id @default(autoincrement())
+  name      String
+  createdAt DateTime @default(now())
+
+  transactions Transaction[] @relation("PocketTransaction")
+  transfersOut Transaction[] @relation("TransferFromPocket")
+  transfersIn  Transaction[] @relation("TransferToPocket")
+}
+
+model Category {
+  id   Int          @id @default(autoincrement())
+  name String
+  type CategoryType
+
+  transactions Transaction[]
+
+  @@unique([name, type])
+}
+
+model Transaction {
+  id     Int             @id @default(autoincrement())
+  type   TransactionType
+  amount Int
+  note   String?
+  date   DateTime        @default(now())
+
+  pocketId Int?
+  pocket   Pocket? @relation("PocketTransaction", fields: [pocketId], references: [id])
+
+  categoryId Int?
+  category   Category? @relation(fields: [categoryId], references: [id])
+
+  fromPocketId Int?
+  fromPocket   Pocket? @relation("TransferFromPocket", fields: [fromPocketId], references: [id])
+
+  toPocketId Int?
+  toPocket   Pocket? @relation("TransferToPocket", fields: [toPocketId], references: [id])
+
+  createdAt DateTime @default(now())
+}
