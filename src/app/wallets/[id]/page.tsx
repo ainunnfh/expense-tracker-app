@@ -4,14 +4,22 @@ import { prisma } from "@/lib/prisma";
 import { formatCurrency } from "@/lib/format";
 import { calculateBalances, describeTransaction } from "@/lib/transactions";
 import { deleteTransaction } from "../actions";
-import { WalletForm } from "../wallet-form";
+import { WalletForm, type Tab } from "../wallet-form";
+
+function parseTab(value: string | string[] | undefined): Tab {
+  const raw = Array.isArray(value) ? value[0] : value;
+  return raw === "income" || raw === "transfer" ? raw : "expense";
+}
 
 export default async function WalletPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
   const { id } = await params;
+  const tab = parseTab((await searchParams).tab);
   const walletId = Number(id);
   if (!Number.isFinite(walletId)) notFound();
 
@@ -72,6 +80,7 @@ export default async function WalletPage({
             Catat Transaksi
           </h2>
           <WalletForm
+            tab={tab}
             wallet={{ id: wallet.id, name: wallet.name, balance }}
             otherWallets={otherWallets.map((w) => ({
               id: w.id,

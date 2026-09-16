@@ -33,6 +33,7 @@ function parseDate(value: FormDataEntryValue | null) {
 function revalidateWallets(...pocketIds: number[]) {
   revalidatePath("/");
   revalidatePath("/wallets");
+  revalidatePath("/chart");
   for (const id of pocketIds) {
     revalidatePath(`/wallets/${id}`);
   }
