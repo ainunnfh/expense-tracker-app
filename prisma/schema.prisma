@@ -46,8 +46,36 @@ model Category {
   type CategoryType
 
   transactions Transaction[]
+  budgets      Budget[]
 
   @@unique([name, type])
+}
+
+/// App-wide preferences. Single row, always id = 1.
+model Setting {
+  id Int @id @default(1)
+
+  /// Day the monthly cycle starts on, e.g. 25 for a payday-to-payday month.
+  /// Capped at 28 so every month can contain it.
+  monthStartDay Int @default(1)
+
+  updatedAt DateTime @updatedAt
+}
+
+/// Spending target for one category in one month ("2026-09").
+model Budget {
+  id     Int    @id @default(autoincrement())
+  month  String @db.VarChar(7)
+  amount Int
+
+  categoryId Int
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([categoryId, month])
+  @@index([month])
 }
 
 model Transaction {

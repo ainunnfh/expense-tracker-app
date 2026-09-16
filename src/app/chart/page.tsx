@@ -1,5 +1,6 @@
 import type { TransactionType } from "@/generated/prisma/enums";
 import { prisma } from "@/lib/prisma";
+import { getMonthStartDay } from "@/lib/settings";
 import { formatDate } from "@/lib/format";
 import {
   findPeriodContaining,
@@ -30,9 +31,10 @@ export default async function ChartPage({
   const period: Period = isPeriod(rawPeriod) ? rawPeriod : "thisMonth";
   const groupBy: GroupBy = firstParam(sp.groupBy) === "wallet" ? "wallet" : "category";
 
+  const monthStartDay = await getMonthStartDay();
   const now = new Date();
-  const { start, end } = getPeriodRange(period, now);
-  const buckets = getPeriodBuckets(period, now);
+  const { start, end } = getPeriodRange(period, now, monthStartDay);
+  const buckets = getPeriodBuckets(period, now, monthStartDay);
 
   const outsidePeriod = {
     type: { in: CASH_FLOW_TYPES },
@@ -104,7 +106,7 @@ export default async function ChartPage({
       ? {
           count: outsideCount,
           dateLabel: formatDate(latestOutside.date),
-          period: findPeriodContaining(latestOutside.date, now),
+          period: findPeriodContaining(latestOutside.date, now, monthStartDay),
         }
       : null;
 
@@ -127,7 +129,7 @@ export default async function ChartPage({
           trend={
             <CashFlowChart
               buckets={cashFlow}
-              rangeLabel={formatPeriodRange(period, now)}
+              rangeLabel={formatPeriodRange(period, now, monthStartDay)}
             />
           }
           expenseBreakdown={

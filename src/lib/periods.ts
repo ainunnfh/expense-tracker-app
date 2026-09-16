@@ -1,3 +1,4 @@
+import { cycleContaining, shiftCycle } from "./cycle";
 import {
   formatDate,
   formatMonthLabel,
@@ -36,7 +37,11 @@ function startOfWeek(date: Date) {
   return start;
 }
 
-export function getPeriodRange(period: Period, now = new Date()) {
+export function getPeriodRange(
+  period: Period,
+  now = new Date(),
+  monthStartDay = 1,
+) {
   switch (period) {
     case "thisWeek": {
       const start = startOfWeek(now);
@@ -51,13 +56,12 @@ export function getPeriodRange(period: Period, now = new Date()) {
       return { start, end };
     }
     case "thisMonth": {
-      const start = new Date(now.getFullYear(), now.getMonth(), 1);
-      const end = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+      const { start, end } = cycleContaining(now, monthStartDay);
       return { start, end };
     }
     case "lastMonth": {
-      const start = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-      const end = new Date(now.getFullYear(), now.getMonth(), 1);
+      const current = cycleContaining(now, monthStartDay);
+      const { start, end } = shiftCycle(current, -1, monthStartDay);
       return { start, end };
     }
     case "thisYear": {
@@ -74,10 +78,14 @@ export function getPeriodRange(period: Period, now = new Date()) {
 }
 
 /** Narrowest period that still contains `date`, for "lihat di ..." shortcuts. */
-export function findPeriodContaining(date: Date, now = new Date()): Period | null {
+export function findPeriodContaining(
+  date: Date,
+  now = new Date(),
+  monthStartDay = 1,
+): Period | null {
   return (
     PERIODS.find((period) => {
-      const { start, end } = getPeriodRange(period, now);
+      const { start, end } = getPeriodRange(period, now, monthStartDay);
       return date >= start && date < end;
     }) ?? null
   );
@@ -93,16 +101,24 @@ export type PeriodBucket = {
 };
 
 /** Human-readable span of a period, e.g. "14 – 20 Sep 2026". */
-export function formatPeriodRange(period: Period, now = new Date()) {
-  const { start, end } = getPeriodRange(period, now);
+export function formatPeriodRange(
+  period: Period,
+  now = new Date(),
+  monthStartDay = 1,
+) {
+  const { start, end } = getPeriodRange(period, now, monthStartDay);
   const last = new Date(end);
   last.setDate(last.getDate() - 1);
   return `${formatDate(start)} – ${formatDate(last)}`;
 }
 
 /** Time buckets for the trend chart: weeks/months plot per day, years per month. */
-export function getPeriodBuckets(period: Period, now = new Date()): PeriodBucket[] {
-  const { start, end } = getPeriodRange(period, now);
+export function getPeriodBuckets(
+  period: Period,
+  now = new Date(),
+  monthStartDay = 1,
+): PeriodBucket[] {
+  const { start, end } = getPeriodRange(period, now, monthStartDay);
 
   if (period === "thisYear" || period === "lastYear") {
     return Array.from({ length: 12 }, (_, month) => {

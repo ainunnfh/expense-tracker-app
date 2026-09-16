@@ -1,11 +1,15 @@
 import { prisma } from "@/lib/prisma";
 import { formatCurrency } from "@/lib/format";
 import { calculateBalances, describeTransaction } from "@/lib/transactions";
+import { cycleContaining, cycleRangeLabel } from "@/lib/cycle";
+import { getMonthStartDay } from "@/lib/settings";
 
 export default async function Home() {
+  const monthStartDay = await getMonthStartDay();
   const now = new Date();
-  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-  const startOfNextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+  const cycle = cycleContaining(now, monthStartDay);
+  const startOfMonth = cycle.start;
+  const startOfNextMonth = cycle.end;
 
   const [pockets, balanceInputs, monthIncome, monthExpense, transactions] =
     await Promise.all([
@@ -49,6 +53,11 @@ export default async function Home() {
           <h1 className="mt-1 text-xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50 sm:text-2xl">
             Dashboard
           </h1>
+          {monthStartDay !== 1 ? (
+            <p className="mt-1 text-xs text-zinc-400 dark:text-zinc-500">
+              Bulan ini dihitung {cycleRangeLabel(cycle)}
+            </p>
+          ) : null}
         </header>
 
         <section className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
