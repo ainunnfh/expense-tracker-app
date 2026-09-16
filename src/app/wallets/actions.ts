@@ -46,7 +46,7 @@ function revalidateWallets(...pocketIds: number[]) {
   revalidatePath("/");
   revalidatePath("/wallets");
   revalidatePath("/chart");
-  revalidatePath("/budget");
+  revalidatePath("/settings/budget");
   for (const id of pocketIds) {
     revalidatePath(`/wallets/${id}`);
   }

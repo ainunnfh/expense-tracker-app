@@ -6,7 +6,7 @@ import { isMonthKey, previousMonth } from "@/lib/months";
 import { requireUser } from "@/lib/auth";
 
 function revalidateBudget() {
-  revalidatePath("/budget");
+  revalidatePath("/settings/budget");
   revalidatePath("/");
 }
 

@@ -119,7 +119,7 @@ export default async function BudgetPage({
         {/* Month nav is plain links so it works without JS. */}
         <div className="mb-6 flex items-center gap-2">
           <Link
-            href={`/budget?month=${previous.key}`}
+            href={`/settings/budget?month=${previous.key}`}
             aria-label="Bulan sebelumnya"
             className="flex size-11 items-center justify-center rounded-lg border border-zinc-200 bg-white text-lg text-zinc-500 hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-400 dark:hover:bg-zinc-900"
           >
@@ -134,7 +134,7 @@ export default async function BudgetPage({
             </span>
           </span>
           <Link
-            href={`/budget?month=${next.key}`}
+            href={`/settings/budget?month=${next.key}`}
             aria-label="Bulan berikutnya"
             className="flex size-11 items-center justify-center rounded-lg border border-zinc-200 bg-white text-lg text-zinc-500 hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-400 dark:hover:bg-zinc-900"
           >

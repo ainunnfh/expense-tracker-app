@@ -342,16 +342,24 @@ function IncomeExpenseForm({
       <input type="hidden" name="pocketId" value={walletId} />
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <Field label="Kategori">
-          <select name="categoryId" defaultValue="" className={inputClass}>
-            <option value="">Tanpa kategori</option>
-            {categories.map((category) => (
-              <option key={category.id} value={category.id}>
-                {category.name}
-              </option>
-            ))}
-          </select>
-        </Field>
+        <div>
+          <Field label="Kategori">
+            <select name="categoryId" defaultValue="" className={inputClass}>
+              <option value="">Tanpa kategori</option>
+              {categories.map((category) => (
+                <option key={category.id} value={category.id}>
+                  {category.name}
+                </option>
+              ))}
+            </select>
+          </Field>
+          <Link
+            href="/settings/categories"
+            className="mt-1 inline-block text-xs text-zinc-400 hover:text-zinc-600 dark:text-zinc-500 dark:hover:text-zinc-300"
+          >
+            Kelola kategori
+          </Link>
+        </div>
         <DateField />
       </div>
 

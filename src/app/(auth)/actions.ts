@@ -9,6 +9,7 @@ import {
   verifyPassword,
 } from "@/lib/auth";
 import { MIN_PASSWORD } from "./errors";
+import { seedDefaultCategories } from "@/lib/categories";
 
 function readCredentials(formData: FormData) {
   return {
@@ -55,6 +56,8 @@ export async function register(formData: FormData) {
   });
 
   await claimOrphanData(user.id);
+  // Runs after the claim, so adopted categories aren't duplicated.
+  await seedDefaultCategories(user.id);
   await createSession(user.id);
   redirect("/");
 }

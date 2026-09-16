@@ -33,7 +33,7 @@ export async function setMonthStartDay(formData: FormData) {
 
   // The cycle drives every page's idea of "this month".
   revalidatePath("/");
-  revalidatePath("/budget");
+  revalidatePath("/settings/budget");
   revalidatePath("/chart");
   revalidatePath("/settings");
 }
