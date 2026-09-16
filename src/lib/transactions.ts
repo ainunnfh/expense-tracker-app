@@ -40,9 +40,10 @@ export function calculateBalances(
   return balances;
 }
 
-export async function getPocketBalance(pocketId: number) {
+export async function getPocketBalance(pocketId: number, userId: number) {
   const transactions = await prisma.transaction.findMany({
     where: {
+      userId,
       OR: [{ pocketId }, { fromPocketId: pocketId }, { toPocketId: pocketId }],
     },
     select: {

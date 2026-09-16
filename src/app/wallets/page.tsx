@@ -2,6 +2,7 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { formatCurrency } from "@/lib/format";
 import { calculateBalances } from "@/lib/transactions";
+import { requireUser } from "@/lib/auth";
 import { createWallet } from "./actions";
 
 const DEFAULT_CATEGORIES = [
@@ -20,18 +21,25 @@ const DEFAULT_CATEGORIES = [
   { name: "Lainnya", type: "EXPENSE" as const },
 ];
 
-async function ensureDefaultCategories() {
-  const count = await prisma.category.count();
+async function ensureDefaultCategories(userId: number) {
+  const count = await prisma.category.count({ where: { userId } });
   if (count > 0) return;
-  await prisma.category.createMany({ data: DEFAULT_CATEGORIES });
+  await prisma.category.createMany({
+    data: DEFAULT_CATEGORIES.map((c) => ({ ...c, userId })),
+  });
 }
 
 export default async function WalletsPage() {
-  await ensureDefaultCategories();
+  const user = await requireUser();
+  await ensureDefaultCategories(user.id);
 
   const [wallets, balanceInputs] = await Promise.all([
-    prisma.pocket.findMany({ orderBy: { createdAt: "asc" } }),
+    prisma.pocket.findMany({
+      where: { userId: user.id },
+      orderBy: { createdAt: "asc" },
+    }),
     prisma.transaction.findMany({
+      where: { userId: user.id },
       select: {
         type: true,
         amount: true,

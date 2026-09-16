@@ -1,6 +1,7 @@
 import type { TransactionType } from "@/generated/prisma/enums";
 import { prisma } from "@/lib/prisma";
 import { getMonthStartDay } from "@/lib/settings";
+import { requireUser } from "@/lib/auth";
 import { formatDate } from "@/lib/format";
 import {
   findPeriodContaining,
@@ -31,12 +32,14 @@ export default async function ChartPage({
   const period: Period = isPeriod(rawPeriod) ? rawPeriod : "thisMonth";
   const groupBy: GroupBy = firstParam(sp.groupBy) === "wallet" ? "wallet" : "category";
 
-  const monthStartDay = await getMonthStartDay();
+  const user = await requireUser();
+  const monthStartDay = await getMonthStartDay(user.id);
   const now = new Date();
   const { start, end } = getPeriodRange(period, now, monthStartDay);
   const buckets = getPeriodBuckets(period, now, monthStartDay);
 
   const outsidePeriod = {
+    userId: user.id,
     type: { in: CASH_FLOW_TYPES },
     OR: [{ date: { lt: start } }, { date: { gte: end } }],
   };
@@ -44,6 +47,7 @@ export default async function ChartPage({
   const [transactions, outsideCount, latestOutside] = await Promise.all([
     prisma.transaction.findMany({
       where: {
+        userId: user.id,
         type: { in: ["INCOME", "EXPENSE"] },
         date: { gte: start, lt: end },
       },

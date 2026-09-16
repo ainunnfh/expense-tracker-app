@@ -10,6 +10,7 @@ import {
   shiftCycle,
 } from "@/lib/cycle";
 import { getMonthStartDay } from "@/lib/settings";
+import { requireUser } from "@/lib/auth";
 import { copyBudgetFromPreviousMonth, setBudget } from "./actions";
 
 function firstParam(value: string | string[] | undefined) {
@@ -46,7 +47,8 @@ export default async function BudgetPage({
 }: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
-  const monthStartDay = await getMonthStartDay();
+  const user = await requireUser();
+  const monthStartDay = await getMonthStartDay(user.id);
   const requested = firstParam((await searchParams).month);
   const cycle = isMonthKey(requested)
     ? cycleFromKey(requested, monthStartDay)
@@ -58,16 +60,20 @@ export default async function BudgetPage({
 
   const [categories, budgets, spending, previousCount] = await Promise.all([
     prisma.category.findMany({
-      where: { type: "EXPENSE" },
+      where: { type: "EXPENSE", userId: user.id },
       orderBy: { name: "asc" },
     }),
-    prisma.budget.findMany({ where: { month } }),
+    prisma.budget.findMany({ where: { month, userId: user.id } }),
     prisma.transaction.groupBy({
       by: ["categoryId"],
-      where: { type: "EXPENSE", date: { gte: start, lt: end } },
+      where: {
+        userId: user.id,
+        type: "EXPENSE",
+        date: { gte: start, lt: end },
+      },
       _sum: { amount: true },
     }),
-    prisma.budget.count({ where: { month: previous.key } }),
+    prisma.budget.count({ where: { month: previous.key, userId: user.id } }),
   ]);
 
   const targetOf = new Map(budgets.map((b) => [b.categoryId, b.amount]));

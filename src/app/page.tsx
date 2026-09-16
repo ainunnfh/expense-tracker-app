@@ -3,9 +3,11 @@ import { formatCurrency } from "@/lib/format";
 import { calculateBalances, describeTransaction } from "@/lib/transactions";
 import { cycleContaining, cycleRangeLabel } from "@/lib/cycle";
 import { getMonthStartDay } from "@/lib/settings";
+import { requireUser } from "@/lib/auth";
 
 export default async function Home() {
-  const monthStartDay = await getMonthStartDay();
+  const user = await requireUser();
+  const monthStartDay = await getMonthStartDay(user.id);
   const now = new Date();
   const cycle = cycleContaining(now, monthStartDay);
   const startOfMonth = cycle.start;
@@ -13,8 +15,9 @@ export default async function Home() {
 
   const [pockets, balanceInputs, monthIncome, monthExpense, transactions] =
     await Promise.all([
-      prisma.pocket.findMany({ select: { id: true } }),
+      prisma.pocket.findMany({ where: { userId: user.id }, select: { id: true } }),
       prisma.transaction.findMany({
+        where: { userId: user.id },
         select: {
           type: true,
           amount: true,
@@ -24,14 +27,23 @@ export default async function Home() {
         },
       }),
       prisma.transaction.aggregate({
-        where: { type: "INCOME", date: { gte: startOfMonth, lt: startOfNextMonth } },
+        where: {
+          userId: user.id,
+          type: "INCOME",
+          date: { gte: startOfMonth, lt: startOfNextMonth },
+        },
         _sum: { amount: true },
       }),
       prisma.transaction.aggregate({
-        where: { type: "EXPENSE", date: { gte: startOfMonth, lt: startOfNextMonth } },
+        where: {
+          userId: user.id,
+          type: "EXPENSE",
+          date: { gte: startOfMonth, lt: startOfNextMonth },
+        },
         _sum: { amount: true },
       }),
       prisma.transaction.findMany({
+        where: { userId: user.id },
         orderBy: { createdAt: "desc" },
         take: 5,
         include: { pocket: true, category: true, fromPocket: true, toPocket: true },

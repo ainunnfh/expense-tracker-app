@@ -13,10 +13,30 @@ datasource db {
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
-  email     String   @unique
-  name      String?
+  id           Int      @id @default(autoincrement())
+  email        String   @unique
+  name         String?
+  passwordHash String
+  createdAt    DateTime @default(now())
+
+  sessions     Session[]
+  pockets      Pocket[]
+  categories   Category[]
+  transactions Transaction[]
+  budgets      Budget[]
+  setting      Setting?
+}
+
+/// Login session. `id` holds a SHA-256 of the cookie token, never the token itself.
+model Session {
+  id        String   @id
+  expiresAt DateTime
   createdAt DateTime @default(now())
+
+  userId Int
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 enum TransactionType {
@@ -35,6 +55,9 @@ model Pocket {
   name      String
   createdAt DateTime @default(now())
 
+  userId Int?
+  user   User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   transactions Transaction[] @relation("PocketTransaction")
   transfersOut Transaction[] @relation("TransferFromPocket")
   transfersIn  Transaction[] @relation("TransferToPocket")
@@ -48,18 +71,24 @@ model Category {
   transactions Transaction[]
   budgets      Budget[]
 
-  @@unique([name, type])
+  userId Int?
+  user   User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, name, type])
 }
 
-/// App-wide preferences. Single row, always id = 1.
+/// Per-account preferences.
 model Setting {
-  id Int @id @default(1)
+  id Int @id @default(autoincrement())
 
   /// Day the monthly cycle starts on, e.g. 25 for a payday-to-payday month.
   /// Capped at 28 so every month can contain it.
   monthStartDay Int @default(1)
 
   updatedAt DateTime @updatedAt
+
+  userId Int?  @unique
+  user   User? @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 /// Spending target for one category in one month ("2026-09").
@@ -70,6 +99,9 @@ model Budget {
 
   categoryId Int
   category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  userId Int?
+  user   User? @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -97,5 +129,10 @@ model Transaction {
   toPocketId Int?
   toPocket   Pocket? @relation("TransferToPocket", fields: [toPocketId], references: [id])
 
+  userId Int?
+  user   User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   createdAt DateTime @default(now())
+
+  @@index([userId])
 }

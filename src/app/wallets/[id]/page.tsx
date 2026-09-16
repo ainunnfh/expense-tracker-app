@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { formatCurrency } from "@/lib/format";
 import { calculateBalances, describeTransaction } from "@/lib/transactions";
 import { deleteTransaction } from "../actions";
+import { requireUser } from "@/lib/auth";
 import { WalletForm, type Tab } from "../wallet-form";
 
 function parseTab(value: string | string[] | undefined): Tab {
@@ -18,18 +19,29 @@ export default async function WalletPage({
   params: Promise<{ id: string }>;
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
+  const user = await requireUser();
   const { id } = await params;
   const tab = parseTab((await searchParams).tab);
   const walletId = Number(id);
   if (!Number.isFinite(walletId)) notFound();
 
-  const wallet = await prisma.pocket.findUnique({ where: { id: walletId } });
+  // Scoped lookup: another account's wallet id simply 404s.
+  const wallet = await prisma.pocket.findFirst({
+    where: { id: walletId, userId: user.id },
+  });
   if (!wallet) notFound();
 
   const [allWallets, categories, balanceInputs, transactions] = await Promise.all([
-    prisma.pocket.findMany({ orderBy: { createdAt: "asc" } }),
-    prisma.category.findMany({ orderBy: { name: "asc" } }),
+    prisma.pocket.findMany({
+      where: { userId: user.id },
+      orderBy: { createdAt: "asc" },
+    }),
+    prisma.category.findMany({
+      where: { userId: user.id },
+      orderBy: { name: "asc" },
+    }),
     prisma.transaction.findMany({
+      where: { userId: user.id },
       select: {
         type: true,
         amount: true,
@@ -40,6 +52,7 @@ export default async function WalletPage({
     }),
     prisma.transaction.findMany({
       where: {
+        userId: user.id,
         OR: [
           { pocketId: walletId },
           { fromPocketId: walletId },
