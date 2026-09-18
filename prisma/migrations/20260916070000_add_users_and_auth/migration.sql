@@ -1,23 +1,23 @@
 -- DropIndex
-DROP INDEX `Category_name_type_key` ON `category`;
+DROP INDEX `Category_name_type_key` ON `Category`;
 
 -- AlterTable
-ALTER TABLE `budget` ADD COLUMN `userId` INTEGER NULL;
+ALTER TABLE `Budget` ADD COLUMN `userId` INTEGER NULL;
 
 -- AlterTable
-ALTER TABLE `category` ADD COLUMN `userId` INTEGER NULL;
+ALTER TABLE `Category` ADD COLUMN `userId` INTEGER NULL;
 
 -- AlterTable
-ALTER TABLE `pocket` ADD COLUMN `userId` INTEGER NULL;
+ALTER TABLE `Pocket` ADD COLUMN `userId` INTEGER NULL;
 
 -- AlterTable
-ALTER TABLE `setting` ADD COLUMN `userId` INTEGER NULL;
+ALTER TABLE `Setting` ADD COLUMN `userId` INTEGER NULL;
 
 -- AlterTable
-ALTER TABLE `transaction` ADD COLUMN `userId` INTEGER NULL;
+ALTER TABLE `Transaction` ADD COLUMN `userId` INTEGER NULL;
 
 -- AlterTable
-ALTER TABLE `user` ADD COLUMN `passwordHash` VARCHAR(191) NOT NULL;
+ALTER TABLE `User` ADD COLUMN `passwordHash` VARCHAR(191) NOT NULL;
 
 -- CreateTable
 CREATE TABLE `Session` (
